@@ -23,6 +23,7 @@ export default function RootLayout({
           <nav className="site-nav">
             <Link href="/">Calendar</Link>
             <Link href="/my">My Days</Link>
+            <Link href="/scoreboard">Scoreboard</Link>
             <Link href="/admin">Admin</Link>
           </nav>
         </header>

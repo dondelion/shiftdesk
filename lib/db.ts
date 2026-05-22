@@ -393,6 +393,71 @@ export async function getReservationsByPerson(input: {
   return res.rows.map((r) => toReservation(r as Record<string, unknown>));
 }
 
+// ---- Scoreboard ----
+export type ScoreboardEntry = {
+  name: string;
+  personnel_number: string;
+  total: number;
+  weekdays: number;
+  weekendsHolidays: number;
+  reservations: { date: string; dayType: "weekday" | "weekend_holiday" }[];
+};
+
+export async function getScoreboard(month?: string): Promise<ScoreboardEntry[]> {
+  const db = await getDb();
+  const whereClause = month ? "WHERE substr(r.date,1,7) = ?" : "";
+  const args = month ? [month] : [];
+
+  // Per-person aggregates
+  const agg = await db.execute({
+    sql: `SELECT
+            r.personnel_number,
+            r.name,
+            COUNT(*) AS total,
+            SUM(CASE WHEN CAST(strftime('%w', r.date) AS INTEGER) BETWEEN 1 AND 5
+                          AND h.date IS NULL THEN 1 ELSE 0 END) AS weekdays,
+            SUM(CASE WHEN CAST(strftime('%w', r.date) AS INTEGER) NOT BETWEEN 1 AND 5
+                          OR h.date IS NOT NULL THEN 1 ELSE 0 END) AS weekends_holidays
+          FROM reservations r
+          LEFT JOIN holidays h ON r.date = h.date
+          ${whereClause}
+          GROUP BY r.personnel_number
+          ORDER BY total DESC, r.name ASC`,
+    args,
+  });
+
+  // Individual reservations with day type
+  const detail = await db.execute({
+    sql: `SELECT
+            r.personnel_number,
+            r.date,
+            CASE WHEN CAST(strftime('%w', r.date) AS INTEGER) BETWEEN 1 AND 5
+                      AND h.date IS NULL THEN 'weekday' ELSE 'weekend_holiday' END AS day_type
+          FROM reservations r
+          LEFT JOIN holidays h ON r.date = h.date
+          ${whereClause}
+          ORDER BY r.personnel_number, r.date ASC`,
+    args,
+  });
+
+  // Group detail rows by personnel_number
+  const detailMap: Record<string, { date: string; dayType: "weekday" | "weekend_holiday" }[]> = {};
+  for (const r of detail.rows) {
+    const pnum = r.personnel_number as string;
+    if (!detailMap[pnum]) detailMap[pnum] = [];
+    detailMap[pnum].push({ date: r.date as string, dayType: r.day_type as "weekday" | "weekend_holiday" });
+  }
+
+  return agg.rows.map((r) => ({
+    name: r.name as string,
+    personnel_number: r.personnel_number as string,
+    total: r.total as number,
+    weekdays: r.weekdays as number,
+    weekendsHolidays: r.weekends_holidays as number,
+    reservations: detailMap[r.personnel_number as string] ?? [],
+  }));
+}
+
 // ---- Admin ----
 export async function getAllReservations(): Promise<Reservation[]> {
   const db = await getDb();
