@@ -1,27 +1,28 @@
 :root {
-  --bg: #f4f5f9;
-  --surface: #ffffff;
-  --ink: #1c2030;
-  --muted: #6b7180;
-  --line: #e7e9f0;
-  --accent: #6366f1;
-  --accent-ink: #4338ca;
-  --accent-soft: #eef0fe;
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-raised: #21253200;
+  --ink: #e8eaf2;
+  --muted: #7c8299;
+  --line: #2a2e3d;
+  --accent: #06b6d4;
+  --accent-ink: #22d3ee;
+  --accent-soft: #06b6d414;
   --available: #10b981;
-  --available-soft: #e7f8f1;
-  --available-line: #b7e6d3;
-  --taken: #94a0b8;
-  --taken-soft: #eef0f4;
-  --blocked: #d97706;
-  --blocked-soft: #fdf3e3;
-  --holiday: #b07d12;
-  --holiday-soft: #fbf2d6;
-  --holiday-line: #e6cf86;
-  --danger: #e23b54;
+  --available-soft: #10b98114;
+  --available-line: #10b98140;
+  --taken: #64748b;
+  --taken-soft: #1e2333;
+  --blocked: #f59e0b;
+  --blocked-soft: #f59e0b12;
+  --holiday: #f59e0b;
+  --holiday-soft: #f59e0b14;
+  --holiday-line: #f59e0b40;
+  --danger: #f43f5e;
   --radius: 14px;
-  --shadow-sm: 0 1px 2px rgba(20, 24, 40, 0.06);
-  --shadow-md: 0 8px 24px rgba(20, 24, 40, 0.1);
-  --shadow-lg: 0 20px 50px rgba(20, 24, 40, 0.22);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -58,7 +59,7 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 16px 28px;
-  background: var(--surface);
+  background: #13161f;
   border-bottom: 1px solid var(--line);
 }
 
@@ -69,13 +70,14 @@ a {
   font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .brand-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  background: linear-gradient(135deg, var(--accent), #818cf8);
 }
 
 .site-nav {
@@ -110,6 +112,7 @@ a {
   padding: 20px;
   color: var(--muted);
   font-size: 13px;
+  border-top: 1px solid var(--line);
 }
 
 /* ---------- Cards & headings ---------- */
@@ -129,6 +132,7 @@ a {
 .page-intro h1 {
   font-size: 28px;
   letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .page-intro p {
@@ -149,6 +153,7 @@ a {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .month-sub {
@@ -223,7 +228,7 @@ a {
   gap: 3px;
   padding: 6px;
   font-family: inherit;
-  background: var(--surface);
+  background: #1e2233;
   transition: transform 0.08s, box-shadow 0.15s, background 0.15s,
     border-color 0.15s;
 }
@@ -236,6 +241,7 @@ a {
 .day-num {
   font-size: 15px;
   font-weight: 600;
+  color: var(--ink);
 }
 
 .day-icon {
@@ -258,13 +264,18 @@ a {
   cursor: pointer;
   border-color: var(--available-line);
   background: var(--available-soft);
-  color: #0c7a55;
+  color: #34d399;
+}
+
+.day-cell.available .day-num {
+  color: #6ee7b7;
 }
 
 .day-cell.available:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
   border-color: var(--available);
+  background: #10b98120;
 }
 
 .day-cell.available:active {
@@ -275,29 +286,29 @@ a {
 .day-cell.taken {
   background: var(--taken-soft);
   border-color: var(--line);
-  color: #5b6478;
+  color: var(--muted);
 }
 
 .day-cell.taken .day-num {
-  color: #8b94a8;
+  color: #4b5568;
 }
 
 /* blocked */
 .day-cell.blocked {
   background: var(--blocked-soft);
-  border-color: #f0d9b5;
-  color: var(--blocked);
+  border-color: #f59e0b20;
+  color: #b45309;
 }
 
 /* past */
 .day-cell.past {
   background: transparent;
   border-style: dashed;
-  color: #c2c6d2;
+  color: #3a3f52;
 }
 
 .day-cell.past .day-num {
-  color: #c2c6d2;
+  color: #3a3f52;
 }
 
 /* mine highlight (my page) */
@@ -320,11 +331,16 @@ a {
 .day-cell.available.is-holiday {
   background: var(--holiday-soft);
   border-color: var(--holiday-line);
-  color: var(--holiday);
+  color: #fbbf24;
+}
+
+.day-cell.available.is-holiday .day-num {
+  color: #fcd34d;
 }
 
 .day-cell.available.is-holiday:hover {
   border-color: var(--holiday);
+  background: #f59e0b1c;
 }
 
 .day-cell.is-holiday .day-label {
@@ -334,19 +350,19 @@ a {
 /* locked — available day in a month that isn't open for reservations */
 .day-cell.locked {
   cursor: not-allowed;
-  background: var(--bg);
+  background: transparent;
   border-style: dashed;
   border-color: var(--line);
-  color: #b4b9c6;
+  color: #3a3f52;
 }
 
 .day-cell.locked .day-num,
 .day-cell.locked .day-icon {
-  color: #b4b9c6;
+  color: #3a3f52;
 }
 
 .day-cell.locked .holiday-star {
-  color: #cdb98a;
+  color: #5c4e24;
 }
 
 /* ---------- Legend ---------- */
@@ -385,7 +401,7 @@ a {
 }
 .swatch.blocked {
   background: var(--blocked-soft);
-  border-color: #f0d9b5;
+  border-color: #f59e0b20;
 }
 .swatch.holiday {
   background: var(--holiday-soft);
@@ -409,11 +425,13 @@ a {
 .banner.info {
   background: var(--accent-soft);
   color: var(--accent-ink);
+  border: 1px solid #06b6d430;
 }
 
 .banner.closed {
   background: var(--blocked-soft);
-  color: var(--blocked);
+  color: #f59e0b;
+  border: 1px solid #f59e0b20;
 }
 
 /* ---------- Forms ---------- */
@@ -438,15 +456,24 @@ a {
   font-size: 14px;
   font-family: inherit;
   color: var(--ink);
-  background: var(--surface);
+  background: #13161f;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field input::placeholder {
+  color: #3e4457;
 }
 
 .field input:focus,
 .field select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 0 0 3px #06b6d420;
+}
+
+.field select option {
+  background: #1a1d27;
+  color: var(--ink);
 }
 
 .btn {
@@ -469,13 +496,13 @@ a {
 }
 
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: #0f1117;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -483,23 +510,23 @@ a {
 }
 
 .btn-ghost {
-  background: var(--surface);
+  background: transparent;
   border-color: var(--line);
   color: var(--ink);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--bg);
+  background: var(--line);
 }
 
 .btn-danger {
-  background: var(--surface);
-  border-color: #f3c2cb;
+  background: transparent;
+  border-color: #f43f5e30;
   color: var(--danger);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #fdeef0;
+  background: #f43f5e14;
 }
 
 .btn-block {
@@ -510,8 +537,8 @@ a {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(20, 24, 40, 0.45);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -521,7 +548,8 @@ a {
 }
 
 .modal {
-  background: var(--surface);
+  background: #1a1d27;
+  border: 1px solid var(--line);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
   width: 100%;
@@ -533,6 +561,7 @@ a {
 .modal h3 {
   font-size: 18px;
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .modal .modal-date {
@@ -549,7 +578,7 @@ a {
 .modal-holiday {
   background: var(--holiday-soft);
   border: 1px solid var(--holiday-line);
-  color: var(--holiday);
+  color: #fbbf24;
   border-radius: 10px;
   padding: 9px 12px;
   font-size: 12.5px;
@@ -596,7 +625,7 @@ a {
 }
 
 .toast.success {
-  background: #0c7a55;
+  background: #059669;
   color: #fff;
 }
 
@@ -632,10 +661,15 @@ a {
 .data-table td {
   padding: 10px;
   border-bottom: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .data-table tr:last-child td {
   border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: #1e2233;
 }
 
 .empty-state {
@@ -668,11 +702,11 @@ a {
 
 .status-pill.open {
   background: var(--available-soft);
-  color: #0c7a55;
+  color: #34d399;
 }
 .status-pill.closed {
   background: var(--blocked-soft);
-  color: var(--blocked);
+  color: #f59e0b;
 }
 .status-pill.scheduled {
   background: var(--accent-soft);
@@ -692,11 +726,12 @@ a {
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--surface);
+  background: #1e2233;
 }
 
 .res-item .res-date {
   font-weight: 700;
+  color: var(--ink);
 }
 
 .res-item .res-meta {
@@ -710,6 +745,7 @@ a {
   font-weight: 700;
   margin-bottom: 12px;
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .stack > * + * {
@@ -742,7 +778,7 @@ a {
 
 .pill.ok {
   background: var(--available-soft);
-  color: #0c7a55;
+  color: #34d399;
 }
 
 .tag-link {
