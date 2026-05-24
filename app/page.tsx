@@ -69,6 +69,10 @@ export default function Home() {
 
   function statusOf(date: string): Status {
     if (!data) return "available";
+    // Mon (1), Sat (6), Sun (0) are not shift days in this schedule.
+    const [y, m, d] = date.split("-").map(Number);
+    const dow = new Date(y, m - 1, d).getDay();
+    if (dow === 0 || dow === 1 || dow === 6) return "blocked";
     if (date in data.blocked) return "blocked";
     if (date in data.reservations) return "taken";
     if (date < data.today) return "past";
@@ -82,7 +86,7 @@ export default function Home() {
       <div className="page-intro">
         <h1>Reserve your shift day</h1>
         <p>
-          Pick an open day below. One person per day — first come, first served.
+          Pick an open Tuesday–Friday below. One person per day — first come, first served.
         </p>
       </div>
 

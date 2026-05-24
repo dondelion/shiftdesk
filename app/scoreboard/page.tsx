@@ -39,7 +39,7 @@ export default function Scoreboard() {
     <>
       <div className="page-intro">
         <h1>Scoreboard</h1>
-        <p>Reservation history for all staff — weekdays and weekends/holidays tracked separately.</p>
+        <p>Reservation history for all staff — Tue–Fri shifts and holidays tracked separately.</p>
       </div>
 
       <div className="card">

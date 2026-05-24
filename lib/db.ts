@@ -292,6 +292,12 @@ export async function createReservation(input: {
   if (date < todayStr()) {
     return { ok: false, code: "PAST", message: "That day is in the past." };
   }
+  // Only Tuesday–Friday are valid shift days.
+  const [dy, dm, dd] = date.split("-").map(Number);
+  const dow = new Date(dy, dm - 1, dd).getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  if (dow === 0 || dow === 1 || dow === 6) {
+    return { ok: false, code: "BLOCKED", message: "Only Tuesday to Friday are available for shifts." };
+  }
 
   const month = date.slice(0, 7);
   const [openInfo, limit, holidayLimit] = await Promise.all([
