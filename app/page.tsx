@@ -84,7 +84,7 @@ export default function Home() {
   return (
     <>
       <div className="page-intro">
-        <h1>Reserve your shift day</h1>
+        <h1>Cancer Shift — Reserve your day</h1>
         <p>
           Pick an open Tuesday–Friday below. One person per day — first come, first served.
         </p>

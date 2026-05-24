@@ -3,8 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ShiftDesk",
-  description: "Reserve a Tuesday–Friday shift day — first come, first served.",
+  title: "Cancer Shift",
+  description: "Cancer Shift — reserve a Tuesday–Friday shift day, first come, first served.",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
         <header className="site-header">
           <Link href="/" className="brand">
             <span className="brand-dot" />
-            ShiftDesk
+            Cancer Shift
           </Link>
           <nav className="site-nav">
             <Link href="/">Calendar</Link>
@@ -29,7 +29,7 @@ export default function RootLayout({
         </header>
         <main className="site-main">{children}</main>
         <footer className="site-footer">
-          Tuesday–Friday shifts &middot; one person per day
+          Cancer Shift &middot; Tuesday–Friday &middot; one person per day
         </footer>
       </body>
     </html>
