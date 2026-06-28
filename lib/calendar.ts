@@ -3,8 +3,10 @@
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function currentMonth(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  // sv-SE gives "YYYY-MM-DD" in Bangkok time; slice to "YYYY-MM"
+  return new Date()
+    .toLocaleDateString("sv-SE", { timeZone: "Asia/Bangkok" })
+    .slice(0, 7);
 }
 
 export function monthLabel(month: string): string {
