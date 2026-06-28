@@ -24,6 +24,7 @@ export default function RootLayout({
             <Link href="/">Calendar</Link>
             <Link href="/my">My Days</Link>
             <Link href="/scoreboard">Scoreboard</Link>
+            <Link href="/changelog">What&rsquo;s new</Link>
             <Link href="/admin">Admin</Link>
           </nav>
         </header>
