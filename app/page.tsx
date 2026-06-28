@@ -31,6 +31,7 @@ type Status = "available" | "taken" | "blocked" | "past";
 export default function Home() {
   const [month, setMonth] = useState(currentMonth());
   const [data, setData] = useState<Availability | null>(null);
+  const monthOverridden = useRef(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: string; msg: string } | null>(
     null
@@ -60,6 +61,20 @@ export default function Home() {
   useEffect(() => {
     load(month);
   }, [month, load]);
+
+  // On first load, jump to whichever month is open or opening within 24h.
+  useEffect(() => {
+    if (monthOverridden.current) return;
+    fetch("/api/active-month")
+      .then((r) => r.json())
+      .then((j: { month: string | null }) => {
+        if (j.month && j.month !== currentMonth()) {
+          monthOverridden.current = true;
+          setMonth(j.month);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Live refresh so the grid stays current while several people book.
   useEffect(() => {

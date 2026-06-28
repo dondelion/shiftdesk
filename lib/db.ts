@@ -259,6 +259,41 @@ export async function monthOpenInfo(month: string): Promise<MonthOpenInfo> {
   return { open: afterOpen && beforeClose, mode: "scheduled", openAt: s.open_at, closeAt: s.close_at };
 }
 
+// Returns the month that should be highlighted on the landing page:
+// • any month with mode='open'
+// • any scheduled month that is currently open
+// • any scheduled month whose open_at is within the next 24 hours
+// Returns null → fall back to currentMonth() on the client.
+export async function featuredMonth(): Promise<string | null> {
+  const dbConn = await getDb();
+  const now = nowLocalString();
+  const in24h = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    .toLocaleString("sv-SE", { timeZone: TZ })
+    .slice(0, 16)
+    .replace(" ", "T");
+  const res = await dbConn.execute({
+    sql: `SELECT month FROM month_settings
+          WHERE mode = 'open'
+             OR (mode = 'scheduled'
+                 AND (open_at IS NULL OR open_at <= ?)
+                 AND (close_at IS NULL OR ? < close_at))
+             OR (mode = 'scheduled'
+                 AND open_at IS NOT NULL
+                 AND open_at > ?
+                 AND open_at <= ?)
+          ORDER BY
+            CASE
+              WHEN mode = 'open' THEN 0
+              WHEN mode = 'scheduled' AND (open_at IS NULL OR open_at <= ?) THEN 1
+              ELSE 2
+            END,
+            month ASC
+          LIMIT 1`,
+    args: [now, now, now, in24h, now],
+  });
+  return res.rows.length ? (res.rows[0].month as string) : null;
+}
+
 // ---- Month view ----
 export async function getMonthData(month: string): Promise<{
   reservations: Record<string, string>;
