@@ -96,15 +96,20 @@ export type ReserveError =
 // ---- Helpers ----
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// Both functions use Asia/Bangkok (UTC+7) so scheduled open/close times
+// and "today" comparisons are correct regardless of where Vercel runs.
+const TZ = "Asia/Bangkok";
+
 export function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return new Date().toLocaleDateString("sv-SE", { timeZone: TZ });
 }
 
 export function nowLocalString(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  // sv-SE gives "YYYY-MM-DD HH:MM:SS" — slice to "YYYY-MM-DDTHH:MM"
+  return new Date()
+    .toLocaleString("sv-SE", { timeZone: TZ })
+    .slice(0, 16)
+    .replace(" ", "T");
 }
 
 function isValidDate(date: string): boolean {
