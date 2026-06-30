@@ -7,25 +7,28 @@ import { formatLong } from "@/lib/calendar";
 type Reservation = {
   id: number;
   date: string;
-  name: string;
-  personnel_number: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
   created_at: string;
 };
 
 export default function MyDays() {
-  const [name, setName] = useState("");
-  const [pnum, setPnum] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [list, setList] = useState<Reservation[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setName(localStorage.getItem("shift_name") || "");
-    setPnum(localStorage.getItem("shift_pnum") || "");
+    setFirstName(localStorage.getItem("shift_first") || "");
+    setLastName(localStorage.getItem("shift_last") || "");
+    setPhone(localStorage.getItem("shift_phone") || "");
   }, []);
 
   async function lookup() {
-    if (!name.trim() || !pnum.trim()) return;
+    if (!firstName.trim() || !lastName.trim() || !phone.trim()) return;
     setBusy(true);
     setError("");
     try {
@@ -33,8 +36,9 @@ export default function MyDays() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          personnelNumber: pnum.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone.trim(),
         }),
       });
       const json = await res.json();
@@ -43,8 +47,9 @@ export default function MyDays() {
         setList(null);
         return;
       }
-      localStorage.setItem("shift_name", name.trim());
-      localStorage.setItem("shift_pnum", pnum.trim());
+      localStorage.setItem("shift_first", firstName.trim());
+      localStorage.setItem("shift_last", lastName.trim());
+      localStorage.setItem("shift_phone", phone.trim());
       setList(json.reservations);
     } catch {
       setError("Network error — please try again.");
@@ -52,6 +57,8 @@ export default function MyDays() {
       setBusy(false);
     }
   }
+
+  const canLookup = firstName.trim() && lastName.trim() && phone.trim();
 
   return (
     <>
@@ -64,22 +71,32 @@ export default function MyDays() {
         <div>
           <div className="section-title">Find your reservations</div>
           <div className="field">
-            <label htmlFor="m-name">Full name</label>
+            <label htmlFor="m-first">First name</label>
             <input
-              id="m-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Smith"
+              id="m-first"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Jane"
               maxLength={80}
             />
           </div>
           <div className="field">
-            <label htmlFor="m-pnum">Personnel number</label>
+            <label htmlFor="m-last">Last name</label>
             <input
-              id="m-pnum"
-              value={pnum}
-              onChange={(e) => setPnum(e.target.value)}
-              placeholder="e.g. 10482"
+              id="m-last"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Smith"
+              maxLength={80}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="m-phone">Phone number</label>
+            <input
+              id="m-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 081-234-5678"
               maxLength={32}
               onKeyDown={(e) => e.key === "Enter" && lookup()}
             />
@@ -92,7 +109,7 @@ export default function MyDays() {
           <button
             className="btn btn-primary btn-block"
             onClick={lookup}
-            disabled={busy || !name.trim() || !pnum.trim()}
+            disabled={busy || !canLookup}
           >
             {busy ? "Looking up…" : "Show my days"}
           </button>

@@ -19,8 +19,9 @@ async function runSchema(db: Client): Promise<void> {
     CREATE TABLE IF NOT EXISTS reservations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      personnel_number TEXT NOT NULL,
+      first_name TEXT NOT NULL DEFAULT '',
+      last_name TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE TABLE IF NOT EXISTS blocked_days (
@@ -48,6 +49,13 @@ async function runSchema(db: Client): Promise<void> {
     INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_password', 'admin123');
   `);
   try { await db.execute("ALTER TABLE month_settings ADD COLUMN close_at TEXT"); } catch { /* already exists */ }
+  // Migration: name/personnel_number → first_name/last_name/phone (idempotent)
+  try { await db.execute("ALTER TABLE reservations ADD COLUMN first_name TEXT NOT NULL DEFAULT ''"); } catch { /* already exists */ }
+  try { await db.execute("ALTER TABLE reservations ADD COLUMN last_name TEXT NOT NULL DEFAULT ''"); } catch { /* already exists */ }
+  try { await db.execute("ALTER TABLE reservations ADD COLUMN phone TEXT NOT NULL DEFAULT ''"); } catch { /* already exists */ }
+  try { await db.execute("UPDATE reservations SET first_name = name, phone = personnel_number WHERE first_name = ''"); } catch { /* old columns gone */ }
+  try { await db.execute("ALTER TABLE reservations DROP COLUMN name"); } catch { /* already dropped */ }
+  try { await db.execute("ALTER TABLE reservations DROP COLUMN personnel_number"); } catch { /* already dropped */ }
 }
 
 export async function getDb(): Promise<Client> {
@@ -61,8 +69,9 @@ export async function getDb(): Promise<Client> {
 export type Reservation = {
   id: number;
   date: string;
-  name: string;
-  personnel_number: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
   created_at: string;
 };
 
@@ -124,8 +133,9 @@ function toReservation(r: Record<string, unknown>): Reservation {
   return {
     id: r.id as number,
     date: r.date as string,
-    name: r.name as string,
-    personnel_number: r.personnel_number as string,
+    first_name: r.first_name as string,
+    last_name: r.last_name as string,
+    phone: r.phone as string,
     created_at: r.created_at as string,
   };
 }
@@ -303,7 +313,7 @@ export async function getMonthData(month: string): Promise<{
   const db = await getDb();
   const like = `${month}-%`;
   const [resRes, blkRes, holRes] = await Promise.all([
-    db.execute({ sql: "SELECT date, name FROM reservations WHERE date LIKE ?", args: [like] }),
+    db.execute({ sql: "SELECT date, first_name || ' ' || last_name AS name FROM reservations WHERE date LIKE ?", args: [like] }),
     db.execute({ sql: "SELECT date, reason FROM blocked_days WHERE date LIKE ?", args: [like] }),
     db.execute({ sql: "SELECT date, name FROM holidays WHERE date LIKE ?", args: [like] }),
   ]);
@@ -319,14 +329,16 @@ export async function getMonthData(month: string): Promise<{
 // ---- Reserve a day (atomic, first-come-first-served) ----
 export async function createReservation(input: {
   date: string;
-  name: string;
-  personnelNumber: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
 }): Promise<ReserveResult> {
   const date = input.date.trim();
-  const name = input.name.trim();
-  const personnelNumber = input.personnelNumber.trim();
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const phone = input.phone.trim();
 
-  if (!isValidDate(date) || !name || !personnelNumber) {
+  if (!isValidDate(date) || !firstName || !lastName || !phone) {
     return { ok: false, code: "INVALID", message: "Missing or invalid fields." };
   }
   if (date < todayStr()) {
@@ -361,8 +373,8 @@ export async function createReservation(input: {
 
     // Total limit: all days count.
     const total = await tx.execute({
-      sql: "SELECT COUNT(*) AS c FROM reservations WHERE personnel_number = ? AND substr(date,1,7) = ?",
-      args: [personnelNumber, month],
+      sql: "SELECT COUNT(*) AS c FROM reservations WHERE phone = ? AND substr(date,1,7) = ?",
+      args: [phone, month],
     });
     if ((total.rows[0].c as number) >= limit) {
       await tx.rollback();
@@ -378,9 +390,9 @@ export async function createReservation(input: {
 
     if (dayIsWeekend || dayIsHoliday) {
       const whTotal = await tx.execute({
-        sql: "SELECT COUNT(*) AS c FROM reservations WHERE personnel_number = ? AND substr(date,1,7) = ? " +
+        sql: "SELECT COUNT(*) AS c FROM reservations WHERE phone = ? AND substr(date,1,7) = ? " +
              "AND (CAST(strftime('%w', date) AS INTEGER) NOT BETWEEN 1 AND 5 OR date IN (SELECT date FROM holidays))",
-        args: [personnelNumber, month],
+        args: [phone, month],
       });
       if ((whTotal.rows[0].c as number) >= holidayLimit) {
         await tx.rollback();
@@ -389,8 +401,8 @@ export async function createReservation(input: {
     }
 
     await tx.execute({
-      sql: "INSERT INTO reservations (date, name, personnel_number) VALUES (?, ?, ?)",
-      args: [date, name, personnelNumber],
+      sql: "INSERT INTO reservations (date, first_name, last_name, phone) VALUES (?, ?, ?, ?)",
+      args: [date, firstName, lastName, phone],
     });
     await tx.commit();
   } catch {
@@ -405,22 +417,25 @@ export async function createReservation(input: {
 // ---- Cancel a reservation ----
 export async function cancelReservation(input: {
   date: string;
-  name: string;
-  personnelNumber: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
 }): Promise<{ ok: boolean; message: string }> {
   const date = input.date.trim();
-  const name = input.name.trim().toLowerCase();
-  const personnelNumber = input.personnelNumber.trim();
+  const firstName = input.firstName.trim().toLowerCase();
+  const lastName = input.lastName.trim().toLowerCase();
+  const phone = input.phone.trim();
 
   const db = await getDb();
   const res = await db.execute({ sql: "SELECT * FROM reservations WHERE date = ?", args: [date] });
   if (!res.rows.length) return { ok: false, message: "No reservation found for that day." };
   const row = res.rows[0];
   if (
-    row.personnel_number !== personnelNumber ||
-    (row.name as string).trim().toLowerCase() !== name
+    row.phone !== phone ||
+    (row.first_name as string).trim().toLowerCase() !== firstName ||
+    (row.last_name as string).trim().toLowerCase() !== lastName
   ) {
-    return { ok: false, message: "Name and personnel number do not match this reservation." };
+    return { ok: false, message: "Details do not match this reservation." };
   }
   await db.execute({ sql: "DELETE FROM reservations WHERE date = ?", args: [date] });
   return { ok: true, message: "Reservation cancelled." };
@@ -428,13 +443,14 @@ export async function cancelReservation(input: {
 
 // ---- Look up a person's reservations ----
 export async function getReservationsByPerson(input: {
-  name: string;
-  personnelNumber: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
 }): Promise<Reservation[]> {
   const db = await getDb();
   const res = await db.execute({
-    sql: "SELECT * FROM reservations WHERE personnel_number = ? AND lower(trim(name)) = lower(trim(?)) ORDER BY date ASC",
-    args: [input.personnelNumber.trim(), input.name.trim()],
+    sql: "SELECT * FROM reservations WHERE phone = ? AND lower(trim(first_name)) = lower(trim(?)) AND lower(trim(last_name)) = lower(trim(?)) ORDER BY date ASC",
+    args: [input.phone.trim(), input.firstName.trim(), input.lastName.trim()],
   });
   return res.rows.map((r) => toReservation(r as Record<string, unknown>));
 }
@@ -442,7 +458,7 @@ export async function getReservationsByPerson(input: {
 // ---- Scoreboard ----
 export type ScoreboardEntry = {
   name: string;
-  personnel_number: string;
+  phone: string;
   total: number;
   weekdays: number;
   weekendsHolidays: number;
@@ -457,8 +473,8 @@ export async function getScoreboard(month?: string): Promise<ScoreboardEntry[]> 
   // Per-person aggregates
   const agg = await db.execute({
     sql: `SELECT
-            r.personnel_number,
-            r.name,
+            r.phone,
+            r.first_name || ' ' || r.last_name AS name,
             COUNT(*) AS total,
             SUM(CASE WHEN CAST(strftime('%w', r.date) AS INTEGER) BETWEEN 1 AND 5
                           AND h.date IS NULL THEN 1 ELSE 0 END) AS weekdays,
@@ -467,40 +483,40 @@ export async function getScoreboard(month?: string): Promise<ScoreboardEntry[]> 
           FROM reservations r
           LEFT JOIN holidays h ON r.date = h.date
           ${whereClause}
-          GROUP BY r.personnel_number
-          ORDER BY total DESC, r.name ASC`,
+          GROUP BY r.phone
+          ORDER BY total DESC, name ASC`,
     args,
   });
 
   // Individual reservations with day type
   const detail = await db.execute({
     sql: `SELECT
-            r.personnel_number,
+            r.phone,
             r.date,
             CASE WHEN CAST(strftime('%w', r.date) AS INTEGER) BETWEEN 1 AND 5
                       AND h.date IS NULL THEN 'weekday' ELSE 'weekend_holiday' END AS day_type
           FROM reservations r
           LEFT JOIN holidays h ON r.date = h.date
           ${whereClause}
-          ORDER BY r.personnel_number, r.date ASC`,
+          ORDER BY r.phone, r.date ASC`,
     args,
   });
 
-  // Group detail rows by personnel_number
+  // Group detail rows by phone
   const detailMap: Record<string, { date: string; dayType: "weekday" | "weekend_holiday" }[]> = {};
   for (const r of detail.rows) {
-    const pnum = r.personnel_number as string;
-    if (!detailMap[pnum]) detailMap[pnum] = [];
-    detailMap[pnum].push({ date: r.date as string, dayType: r.day_type as "weekday" | "weekend_holiday" });
+    const phone = r.phone as string;
+    if (!detailMap[phone]) detailMap[phone] = [];
+    detailMap[phone].push({ date: r.date as string, dayType: r.day_type as "weekday" | "weekend_holiday" });
   }
 
   return agg.rows.map((r) => ({
     name: r.name as string,
-    personnel_number: r.personnel_number as string,
+    phone: r.phone as string,
     total: r.total as number,
     weekdays: r.weekdays as number,
     weekendsHolidays: r.weekends_holidays as number,
-    reservations: detailMap[r.personnel_number as string] ?? [],
+    reservations: detailMap[r.phone as string] ?? [],
   }));
 }
 

@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { currentMonth, formatLong, monthLabel, shiftMonth } from "@/lib/calendar";
+import { LavaLoader } from "@/app/loaders";
 
 type DayRecord = { date: string; dayType: "weekday" | "weekend_holiday" };
 
 type Entry = {
   name: string;
-  personnel_number: string;
+  phone: string;
   total: number;
   weekdays: number;
   weekendsHolidays: number;
@@ -39,7 +40,7 @@ export default function Scoreboard() {
     <>
       <div className="page-intro">
         <h1>Scoreboard</h1>
-        <p>Reservation history for all staff — Tue–Fri shifts and holidays tracked separately.</p>
+        <p>Reservation history for all staff — weekdays and weekends/holidays tracked separately.</p>
       </div>
 
       <div className="card">
@@ -75,7 +76,7 @@ export default function Scoreboard() {
         </div>
 
         {entries === null ? (
-          <div className="spinner-line">Loading…</div>
+          <LavaLoader />
         ) : entries.length === 0 ? (
           <div className="empty-state">No reservations found.</div>
         ) : (
@@ -92,7 +93,7 @@ export default function Scoreboard() {
             </thead>
             <tbody>
               {entries.map((e, i) => {
-                const key = e.personnel_number;
+                const key = e.phone;
                 const isOpen = expanded === key;
                 return (
                   <>
@@ -100,7 +101,7 @@ export default function Scoreboard() {
                       <td style={{ color: "var(--muted)", fontSize: 13 }}>{i + 1}</td>
                       <td>
                         <div style={{ fontWeight: 500 }}>{e.name}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)" }}>#{e.personnel_number}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{e.phone}</div>
                       </td>
                       <td style={{ textAlign: "center", fontWeight: 600 }}>{e.total}</td>
                       <td style={{ textAlign: "center" }}>

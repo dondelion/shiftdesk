@@ -6,8 +6,9 @@ import { currentMonth, formatDateTime, formatLong } from "@/lib/calendar";
 type Reservation = {
   id: number;
   date: string;
-  name: string;
-  personnel_number: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
   created_at: string;
 };
 
@@ -665,7 +666,7 @@ function ReservationsCard({ data, reload, toast }: CardProps) {
             <tr>
               <th>Date</th>
               <th>Name</th>
-              <th>Personnel #</th>
+              <th>Phone</th>
               <th />
             </tr>
           </thead>
@@ -673,12 +674,12 @@ function ReservationsCard({ data, reload, toast }: CardProps) {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{formatLong(r.date)}</td>
-                <td>{r.name}</td>
-                <td>{r.personnel_number}</td>
+                <td>{r.first_name} {r.last_name}</td>
+                <td>{r.phone}</td>
                 <td style={{ textAlign: "right" }}>
                   <button
                     className="btn btn-danger"
-                    onClick={() => del(r.date, r.name)}
+                    onClick={() => del(r.date, `${r.first_name} ${r.last_name}`)}
                   >
                     Remove
                   </button>

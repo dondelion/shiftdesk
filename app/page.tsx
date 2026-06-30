@@ -276,19 +276,21 @@ function ReserveModal({
   onDone: (type: string, msg: string) => void;
   onConflict: (msg: string) => void;
 }) {
-  const [name, setName] = useState("");
-  const [pnum, setPnum] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const submitting = useRef(false);
 
   useEffect(() => {
-    setName(localStorage.getItem("shift_name") || "");
-    setPnum(localStorage.getItem("shift_pnum") || "");
+    setFirstName(localStorage.getItem("shift_first") || "");
+    setLastName(localStorage.getItem("shift_last") || "");
+    setPhone(localStorage.getItem("shift_phone") || "");
   }, []);
 
   async function submit() {
-    if (submitting.current || !name.trim() || !pnum.trim()) return;
+    if (submitting.current || !firstName.trim() || !lastName.trim() || !phone.trim()) return;
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -298,14 +300,16 @@ function ReserveModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date,
-          name: name.trim(),
-          personnelNumber: pnum.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone.trim(),
         }),
       });
       const json = await res.json();
       if (res.ok) {
-        localStorage.setItem("shift_name", name.trim());
-        localStorage.setItem("shift_pnum", pnum.trim());
+        localStorage.setItem("shift_first", firstName.trim());
+        localStorage.setItem("shift_last", lastName.trim());
+        localStorage.setItem("shift_phone", phone.trim());
         onDone("success", `Reserved ${formatLong(date)} — you're all set.`);
         return;
       }
@@ -322,6 +326,8 @@ function ReserveModal({
     }
   }
 
+  const canSubmit = firstName.trim() && lastName.trim() && phone.trim();
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -337,27 +343,36 @@ function ReserveModal({
           </div>
         )}
         <p className="modal-hint">
-          Enter your details to claim this day. Keep your personnel number — you
-          need it to cancel.
+          Enter your details to claim this day.
         </p>
         <div className="field">
-          <label htmlFor="r-name">Full name</label>
+          <label htmlFor="r-first">First name</label>
           <input
-            id="r-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Jane Smith"
+            id="r-first"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Jane"
             maxLength={80}
             autoFocus
           />
         </div>
         <div className="field">
-          <label htmlFor="r-pnum">Personnel number</label>
+          <label htmlFor="r-last">Last name</label>
           <input
-            id="r-pnum"
-            value={pnum}
-            onChange={(e) => setPnum(e.target.value)}
-            placeholder="e.g. 10482"
+            id="r-last"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Smith"
+            maxLength={80}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="r-phone">Phone number</label>
+          <input
+            id="r-phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="e.g. 081-234-5678"
             maxLength={32}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
@@ -374,7 +389,7 @@ function ReserveModal({
           <button
             className="btn btn-primary"
             onClick={submit}
-            disabled={busy || !name.trim() || !pnum.trim()}
+            disabled={busy || !canSubmit}
           >
             {busy ? "Reserving…" : "Confirm"}
           </button>
