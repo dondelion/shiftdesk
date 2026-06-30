@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { currentMonth, formatDateTime, formatLong } from "@/lib/calendar";
+import { LavaLoader } from "@/app/loaders";
 
 type Reservation = {
   id: number;
@@ -84,7 +85,7 @@ export default function Admin() {
   }
 
   if (authed === null) {
-    return <div className="spinner-line">Loading…</div>;
+    return <LavaLoader />;
   }
 
   if (!authed) {

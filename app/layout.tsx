@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { LoaderDefs } from "./loaders";
 
 export const metadata: Metadata = {
   title: "Cancer Shift",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <LoaderDefs />
         <header className="site-header">
           <Link href="/" className="brand">
             <span className="brand-dot" />
