@@ -897,3 +897,21 @@ a {
     padding: 16px;
   }
 }
+
+.lava-loader-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lava-loader-wrap * {
+    animation: none !important;
+  }
+}
