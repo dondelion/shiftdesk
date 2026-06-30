@@ -373,7 +373,7 @@ function ReserveModal({
             id="r-phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. 081-234-5678"
+            placeholder="e.g. 0982222222"
             maxLength={32}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
