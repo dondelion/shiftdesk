@@ -11,6 +11,20 @@ export default function Changelog() {
 
           <div className="cl-entry">
             <div className="cl-meta">
+              <span className="cl-date">30 Jun 2026</span>
+              <span className="cl-tag improvement">Improvement</span>
+            </div>
+            <div className="cl-title">Booking form now uses first name, last name, and phone number</div>
+            <div className="cl-body">
+              The reservation form no longer asks for a personnel number.
+              Instead, enter your <strong>first name</strong>, <strong>last name</strong>,
+              and <strong>phone number</strong>. Use the same details on the My Days page
+              to look up your bookings.
+            </div>
+          </div>
+
+          <div className="cl-entry">
+            <div className="cl-meta">
               <span className="cl-date">28 Jun 2026</span>
               <span className="cl-tag fix">Fix</span>
             </div>
